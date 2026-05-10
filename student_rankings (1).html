@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ترتيب الطلاب - هندسة الحاسبات والمنظومات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1a202c;
+    --muted: #718096;
+    --mumtaz-bg: #f0fdf4; --mumtaz-text: #166534; --mumtaz-border: #bbf7d0;
+    --jaydj-bg:  #eff6ff; --jaydj-text:  #1e40af; --jaydj-border: #bfdbfe;
+    --jayd-bg:   #fefce8; --jayd-text:   #854d0e; --jayd-border:  #fef08a;
+    --maqbul-bg: #fff7ed; --maqbul-text: #9a3412; --maqbul-border:#fed7aa;
+    --gold: #d4a017; --silver: #94a3b8; --bronze: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a3a6e;
+    margin-bottom: 0.25rem;
+  }
+  header p { font-size: 0.9rem; color: var(--muted); }
+
+  .grade-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  .grade-legend span {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    align-items: center;
+  }
+  .controls input, .controls select {
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .controls input { flex: 1; min-width: 160px; }
+  .controls input:focus, .controls select:focus { border-color: #3b82f6; }
+  .count { font-size: 13px; color: var(--muted); margin-right: auto; }
+
+  .table-wrap {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: #1a3a6e;
+    color: #fff;
+    font-weight: 600;
+    padding: 11px 10px;
+    text-align: right;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.15s;
+  }
+  thead th:hover { background: #254fa0; }
+  thead th:first-child { border-left: none; }
+  thead th .sort-arrow { font-size: 10px; margin-right: 3px; opacity: 0.5; }
+  thead th.active .sort-arrow { opacity: 1; }
+
+  tbody tr { transition: background 0.1s; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .rank-cell { text-align: center; font-weight: 700; font-size: 14px; min-width: 36px; }
+  .rank-1 { color: var(--gold); }
+  .rank-2 { color: var(--silver); }
+  .rank-3 { color: var(--bronze); }
+  .rank-other { color: var(--muted); font-size: 13px; }
+
+  .name-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .score-cell { text-align: center; font-weight: 600; }
+  .pct-cell  { text-align: center; color: var(--muted); font-size: 12px; }
+  .yr-cell   { text-align: center; color: var(--muted); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .b-mm { background: var(--mumtaz-bg); color: var(--mumtaz-text); border-color: var(--mumtaz-border); }
+  .b-jj { background: var(--jaydj-bg);  color: var(--jaydj-text);  border-color: var(--jaydj-border); }
+  .b-j  { background: var(--jayd-bg);   color: var(--jayd-text);   border-color: var(--jayd-border); }
+  .b-mq { background: var(--maqbul-bg); color: var(--maqbul-text); border-color: var(--maqbul-border); }
+
+  .bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 80px; }
+  .bar-bg { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+  @media (max-width: 640px) {
+    .yr-cell, .pct-cell { display: none; }
+    .name-cell { max-width: 130px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ترتيب طلاب هندسة الحاسبات والمنظومات</h1>
+  <p>جامعة الزقازيق — مجموع الأربع سنوات من 6000</p>
+</header>
+
+<div class="grade-legend">
+  <span class="badge b-mm">ممتاز — 89.5% فأكثر (5370+)</span>
+  <span class="badge b-jj">جيد جدا — 79.5% فأكثر (4770+)</span>
+  <span class="badge b-j">جيد — 69.5% فأكثر (4170+)</span>
+  <span class="badge b-mq">مقبول — 59.5% فأكثر (3570+)</span>
+</div>
+
+<div class="controls">
+  <input type="text" id="srch" placeholder="ابحث باسم الطالب..." oninput="render()">
+  <select id="grFilter" onchange="render()">
+    <option value="">كل التقديرات</option>
+    <option value="ممتاز">ممتاز</option>
+    <option value="جيد جدا">جيد جدا</option>
+    <option value="جيد">جيد</option>
+    <option value="مقبول">مقبول</option>
+  </select>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('rank')" id="h-rank">ترتيب <span class="sort-arrow">↑</span></th>
+        <th onclick="sortBy('name')" id="h-name">اسم الطالب <span class="sort-arrow">↕</span></th>
+        <th onclick="sortBy('y1')"   id="h-y1">إعدادية <span class="sort-arrow">↕</span></th>
+        <th onclick="sortBy('y2')"   id="h-y2">أولى <span class="sort-arrow">↕</span></th>
+        <th onclick="sortBy('y3')"   id="h-y3">ثانية <span class="sort-arrow">↕</span></th>
+        <th onclick="sortBy('y4')"   id="h-y4">ثالثة <span class="sort-arrow">↕</span></th>
+        <th onclick="sortBy('total')" id="h-total">المجموع / 6000 <span class="sort-arrow">↕</span></th>
+        <th>التقدير</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+const raw=[
+  {name:"احمد ابراهيم ابراهيم السيد عبدربه",y1:1297,y2:1240,y3:1189,y4:1218},
+  {name:"احمد ابراهيم قاسم محمد ابراهيم",y1:1414,y2:1321,y3:1355,y4:1315},
+  {name:"احمد الزكى احمد حسن مصطفى",y1:1253,y2:1204,y3:1151,y4:1181},
+  {name:"احمد جمال عزقلانى عطيه",y1:1371,y2:1327,y3:1308,y4:1356},
+  {name:"احمد عاطف السيد عبد العزيز",y1:1323,y2:1316,y3:1289,y4:1271},
+  {name:"احمد عبد المجيد محمد محمد منصور",y1:1215,y2:1201,y3:1164,y4:1181},
+  {name:"احمد محمد سالم محمد",y1:1273,y2:1222,y3:1166,y4:1097},
+  {name:"احمد محمد صلاح الدين عبد الخالق سعد",y1:1231,y2:1230,y3:1275,y4:1321},
+  {name:"احمد محمد فياض محمد عبدالمنعم",y1:1301,y2:1223,y3:1153,y4:1243},
+  {name:"احمد محمد محمود عطيه",y1:1238,y2:1186,y3:1102,y4:1246},
+  {name:"احمد محمود محمد سيد احمد حرب",y1:1340,y2:1340,y3:1326,y4:1329},
+  {name:"اكرم هشام على احمد محسن",y1:1232,y2:1188,y3:1182,y4:1202},
+  {name:"الحسن السيد حسين على جاب الله",y1:1334,y2:1269,y3:1277,y4:1354},
+  {name:"اميره امجد عبد المنعم السيد الحصرى",y1:1289,y2:1233,y3:1273,y4:1284},
+  {name:"انطون انسى عبدالملك سليمان",y1:1323,y2:1349,y3:1351,y4:1404},
+  {name:"بسمله محمد عبد الحكيم بيومى عطا",y1:1456,y2:1366,y3:1335,y4:1344},
+  {name:"بسنت تامر محمد عبداللطيف",y1:1272,y2:1228,y3:1200,y4:1270},
+  {name:"بسنت عادل السيد ابراهيم",y1:1316,y2:1237,y3:1281,y4:1115},
+  {name:"بيتر اشرف فتحى عبد الملك",y1:1357,y2:1273,y3:1239,y4:1212},
+  {name:"حبيبه محمد مجدي محمد سامى",y1:1234,y2:1180,y3:1121,y4:1204},
+  {name:"حسام صالح ابراهيم محمود",y1:1276,y2:1180,y3:1164,y4:1304},
+  {name:"حسن سامح حسن محمد قاعود",y1:1245,y2:1210,y3:1233,y4:1266},
+  {name:"حسن سامي حسن جودة",y1:1406,y2:1363,y3:1334,y4:1356},
+  {name:"حسن محمد حسن علي الزيات",y1:1343,y2:1401,y3:1410,y4:1275},
+  {name:"رحمة هاني أبو مسلم عبد العزيز",y1:1249,y2:1197,y3:1164,y4:1244},
+  {name:"ريهام حمدى محمد ابراهيم عبد الرحيم",y1:1295,y2:1316,y3:1296,y4:1203},
+  {name:"زياد محمد مصطفى محمود",y1:1232,y2:1182,y3:1201,y4:1364},
+  {name:"ساره محمد عبد المجيد على عبد المجيد",y1:1287,y2:1189,y3:1186,y4:1303},
+  {name:"سامح سامى كمال غطاس",y1:1406,y2:1385,y3:1412,y4:1420.5},
+  {name:"ساندى عالء محمد اسماعيل الصياد",y1:1232,y2:1216,y3:1158,y4:1233},
+  {name:"سلمى أسامة محمد عبدالله",y1:1204,y2:1093,y3:1110,y4:1204},
+  {name:"سندس سعيد السيد عبد المقصود",y1:1243,y2:1158,y3:1177,y4:1317},
+  {name:"شهاب شكرى عبدالنبى ابراهيم غزال",y1:1265,y2:1336,y3:1252,y4:1319},
+  {name:"شهد السيد احمد احمد علي يوسف",y1:1246,y2:1235,y3:1235,y4:1287},
+  {name:"شهد عبدالنبى محمود عبد النبى الشامى",y1:1314,y2:1308,y3:1299,y4:1391},
+  {name:"شهد وليد محمد محمد سيد احمد نصار",y1:1344,y2:1359,y3:1355,y4:1338},
+  {name:"عبد الرحمن ابراهيم محمود محمد دهشان",y1:1340,y2:1345,y3:1312,y4:1242},
+  {name:"عبد الرحمن عالء احمد مصيلحى السيد عوض",y1:1245,y2:1265,y3:1248,y4:1338},
+  {name:"عبدالرحمن محمد صالح عبدالحليم",y1:1261,y2:1290,y3:1306,y4:1228},
+  {name:"عبدالرحمن منصور السيد منصور ابو جميلة",y1:1362,y2:1300,y3:1273,y4:1123},
+  {name:"عبدالله محمد عبدالبديع محمد عفيفي",y1:1353,y2:1379,y3:1389,y4:1281},
+  {name:"عمر حسن ربيع حسن عطيه",y1:1255,y2:1267,y3:1313,y4:1454},
+  {name:"عمر خالد عبدالرحمن عبدالحفيظ",y1:1268,y2:1249,y3:1284,y4:1338},
+  {name:"فايزة محمود بكرى محمد",y1:1211,y2:1177,y3:1123,y4:1215},
+  {name:"فتحى محمد فتحى امين محمد",y1:1264,y2:1279,y3:1265,y4:1320},
+  {name:"فرح محمود عبدالمنعم عبدالحميد",y1:1251,y2:1176,y3:1137,y4:1188},
+  {name:"كريم اسامه السيد عبد الرحمن محمود",y1:1375,y2:1337,y3:1344,y4:1379},
+  {name:"كريم صالح الدين ابومسلم طه خليل الغمري",y1:1343,y2:1393,y3:1360,y4:1363},
+  {name:"كريم وائل طلبه محمد",y1:1278,y2:1304,y3:1135,y4:1146},
+  {name:"ماتيلدا اشرف مالك ميخائيل",y1:1235,y2:1175,y3:1145,y4:1343},
+  {name:"محمد احمد محمود محمد حسين",y1:1262,y2:1322,y3:1299,y4:1300},
+  {name:"محمد جهاد حسين متولى",y1:1265,y2:1290,y3:1266,y4:1289},
+  {name:"محمد طارق عبدالحافظ عبدالواحد",y1:1204,y2:1276,y3:1249,y4:1300},
+  {name:"محمد عادل محمد محمود قاعود",y1:1220,y2:1239,y3:1245,y4:1320},
+  {name:"محمد عبدالحميد فخرى عبدالحميد الشافعى",y1:1348,y2:1308,y3:1265,y4:1310},
+  {name:"محمد عبدالله السيد محمد",y1:1268,y2:1291,y3:1376,y4:1260},
+  {name:"محمد محمود محمد عبد الرحمن",y1:1274,y2:1199,y3:1183,y4:1289},
+  {name:"محمد محمود محمد غانم",y1:1260,y2:1306,y3:1282,y4:1300},
+  {name:"محمد مصطفى محمد احمد عبدالله",y1:1239,y2:1264,y3:1139,y4:1343},
+  {name:"محمود السيد حسين ابوالصالحين",y1:1275,y2:1208,y3:1117,y4:1184},
+  {name:"محمود جلال رمضان الجندى",y1:1265,y2:1334,y3:1314,y4:1078},
+  {name:"محمود محمد شوقي ابراهيم",y1:1347,y2:1295,y3:1278,y4:1132},
+  {name:"مريم فاروق سالمه عدلى جاد",y1:1304,y2:1258,y3:1252,y4:1325},
+  {name:"مصطفى المهدى احمد عطوه قويق",y1:1340,y2:1145,y3:1148,y4:1383},
+  {name:"مصطفى حسن جاب الله عطيه محمود",y1:1223,y2:1210,y3:1232,y4:1211},
+  {name:"مصطفى ياسر عبد الحميد عيد",y1:1206,y2:1164,y3:1255,y4:1249},
+  {name:"منه الله توفيق نصرالدين على محمد",y1:1409,y2:1334,y3:1283,y4:1370},
+  {name:"منه الله عصام احمد سالم الأقرع",y1:1296,y2:1303,y3:1279,y4:1309},
+  {name:"نانسى ايمن نبيل محمد عبده",y1:1252,y2:1243,y3:1253,y4:1346},
+  {name:"نورهان محمد السيد أحمد علي",y1:1208,y2:1218,y3:1190,y4:1145},
+  {name:"هاجر محمد على عبدالله عبد القوى",y1:1214,y2:1114,y3:1119,y4:1044},
+  {name:"يوسف اسامه السيد محمد احمد",y1:1244,y2:1224,y3:1207,y4:1145}
+];
+
+const MAX = 6000;
+const MUMTAZ_PCT = 89.5;
+const JAYDJ_PCT  = 79.5;
+const JAYD_PCT   = 69.5;
+const MAQBUL_PCT = 59.5;
+
+function getGrade(total){
+  const pct = total / MAX * 100;
+  if(pct >= MUMTAZ_PCT) return 'ممتاز';
+  if(pct >= JAYDJ_PCT)  return 'جيد جدا';
+  if(pct >= JAYD_PCT)   return 'جيد';
+  if(pct >= MAQBUL_PCT) return 'مقبول';
+  return 'راسب';
+}
+function badgeCls(g){
+  return g==='ممتاز'?'b-mm':g==='جيد جدا'?'b-jj':g==='جيد'?'b-j':'b-mq';
+}
+function barColor(g){
+  return g==='ممتاز'?'#22c55e':g==='جيد جدا'?'#3b82f6':g==='جيد'?'#eab308':'#f97316';
+}
+
+let allData = raw.map(s=>({...s, total: s.y1+s.y2+s.y3+s.y4}));
+allData.sort((a,b)=>b.total-a.total);
+allData = allData.map((d,i)=>({...d, rank:i+1, grade:getGrade(d.total), pct:(d.total/MAX*100).toFixed(2)}));
+
+let sortCol='rank', sortAsc=true;
+
+function sortBy(col){
+  if(sortCol===col) sortAsc=!sortAsc; else { sortCol=col; sortAsc=true; }
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.classList.remove('active');
+    th.querySelector('.sort-arrow').textContent='↕';
+  });
+  const hEl = document.getElementById('h-'+col);
+  if(hEl){ hEl.classList.add('active'); hEl.querySelector('.sort-arrow').textContent=sortAsc?'↑':'↓'; }
+  render();
+}
+
+function render(){
+  const srch = document.getElementById('srch').value.trim();
+  const gr   = document.getElementById('grFilter').value;
+  let view = [...allData];
+  if(srch) view = view.filter(d=>d.name.includes(srch));
+  if(gr)   view = view.filter(d=>d.grade===gr);
+
+  const cols = {name:(a,b)=>a.name.localeCompare(b.name,'ar'), rank:(a,b)=>a.rank-b.rank,
+    y1:(a,b)=>a.y1-b.y1, y2:(a,b)=>a.y2-b.y2, y3:(a,b)=>a.y3-b.y3, y4:(a,b)=>a.y4-b.y4,
+    total:(a,b)=>a.total-b.total};
+  if(cols[sortCol]) view.sort((a,b)=> sortAsc ? cols[sortCol](a,b) : -cols[sortCol](a,b));
+
+  document.getElementById('count').textContent = `إجمالي: ${view.length} طالب`;
+
+  document.getElementById('tbody').innerHTML = view.map(d=>{
+    const rankCls = d.rank===1?'rank-1':d.rank===2?'rank-2':d.rank===3?'rank-3':'rank-other';
+    const rankIcon = d.rank===1?'🥇':d.rank===2?'🥈':d.rank===3?'🥉':d.rank;
+    const barPct = Math.min(100, d.total/MAX*100).toFixed(1);
+    const bc = barColor(d.grade);
+    return `<tr>
+      <td class="rank-cell ${rankCls}">${rankIcon}</td>
+      <td class="name-cell" title="${d.name}">${d.name}</td>
+      <td class="yr-cell">${d.y1}</td>
+      <td class="yr-cell">${d.y2}</td>
+      <td class="yr-cell">${d.y3}</td>
+      <td class="yr-cell">${d.y4}</td>
+      <td>
+        <div class="bar-wrap">
+          <span class="score-cell" style="min-width:46px">${d.total.toFixed(1)}</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:${barPct}%;background:${bc}"></div></div>
+          <span class="pct-cell" style="min-width:40px">${d.pct}%</span>
+        </div>
+      </td>
+      <td><span class="badge ${badgeCls(d.grade)}">${d.grade}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('h-rank').classList.add('active');
+document.getElementById('h-rank').querySelector('.sort-arrow').textContent='↑';
+render();
+</script>
+</body>
+</html>
